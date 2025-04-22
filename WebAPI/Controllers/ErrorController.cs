@@ -27,7 +27,7 @@ public class ErrorController: ControllerBase
     [HttpGet("server-error")]
     public IActionResult ServerError()
     {
-        throw new Exception("server error");
+        throw new Exception("Server error");
     }
 
     [HttpGet("validation-error")]
