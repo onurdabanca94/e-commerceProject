@@ -6,6 +6,7 @@ namespace WebAPI.DataAccess;
 public class DataContext(DbContextOptions options) : DbContext(options) //class seviyesinde constructor.
 {
     public DbSet<Product> Products => Set<Product>(); //Null promise.
+    public DbSet<Cart> Carts => Set<Cart>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
