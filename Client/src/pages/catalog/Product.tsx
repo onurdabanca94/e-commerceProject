@@ -1,13 +1,32 @@
-import { Button, Card, CardActions, CardContent, CardMedia, Typography } from "@mui/material";
+import {
+  Button,
+  Card,
+  CardActions,
+  CardContent,
+  CardMedia,
+  Typography,
+} from "@mui/material";
 import { IProduct } from "../model/IProduct";
 import { AddShoppingCart } from "@mui/icons-material";
-import SearchIcon from '@mui/icons-material/Search';
+import SearchIcon from "@mui/icons-material/Search";
 import { Link } from "react-router";
+import { useState } from "react";
+import requests from "../../api/requests";
+import { LoadingButton } from "@mui/lab";
 interface Props {
   product: IProduct;
 }
 
 export default function Product({ product }: Props) {
+  const [loading, setLoading] = useState(false);
+
+  function handleAddItem(productId: number) {
+    setLoading(true);
+    requests.Cart.addItem(productId)
+      .then((cart) => console.log(cart))
+      .catch((error) => console.log(error))
+      .finally(() => setLoading(false));
+  }
   return (
     <Card>
       <CardMedia
@@ -15,7 +34,12 @@ export default function Product({ product }: Props) {
         image={`http://localhost:5057/images/${product.imageUrl}`}
       />
       <CardContent>
-        <Typography gutterBottom variant="h6" component="h2" color= "text.secondary">
+        <Typography
+          gutterBottom
+          variant="h6"
+          component="h2"
+          color="text.secondary"
+        >
           {product.name}
         </Typography>
         <Typography variant="body2" color="secondary">
@@ -23,8 +47,27 @@ export default function Product({ product }: Props) {
         </Typography>
       </CardContent>
       <CardActions>
-        <Button variant="outlined" size="small" startIcon={<AddShoppingCart/>} color="success" >Sepete Ekle</Button>
-        <Button component={Link} to={`/catalog/${product.id}`} variant="outlined" size="small" startIcon={<SearchIcon/>} color="primary" >Görüntüle</Button>
+        {/* <Button variant="outlined" size="small" startIcon={<AddShoppingCart/>} color="success" 
+                onClick={() => handleAddItem(product.id)}>Sepete Ekle</Button> */}
+        <LoadingButton
+          size="small"
+          variant="outlined"
+          startIcon={<AddShoppingCart />}
+          loading={loading}
+          onClick={() => handleAddItem(product.id)}
+        >
+          Sepete Ekle
+        </LoadingButton>
+        <Button
+          component={Link}
+          to={`/catalog/${product.id}`}
+          variant="outlined"
+          size="small"
+          startIcon={<SearchIcon />}
+          color="primary"
+        >
+          Görüntüle
+        </Button>
       </CardActions>
     </Card>
   );
