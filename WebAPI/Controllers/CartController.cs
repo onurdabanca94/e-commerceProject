@@ -100,7 +100,7 @@ public class CartController : ControllerBase
         var result = await _context.SaveChangesAsync() > 0;
 
         if(result)
-            return Ok();
+            return CreatedAtAction(nameof(GetCart), CartToDto(cart));
         
         return BadRequest(new ProblemDetails { Title = "Problem removing item from the cart" });
     }

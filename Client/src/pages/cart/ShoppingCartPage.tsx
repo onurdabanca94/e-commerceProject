@@ -1,6 +1,6 @@
 import {
+  Alert,
   Box,
-  IconButton,
   Paper,
   Table,
   TableBody,
@@ -8,25 +8,45 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Typography,
 } from "@mui/material";
 
-import { Delete } from "@mui/icons-material";
+import { AddCircleOutline, Delete, RemoveCircleOutline } from "@mui/icons-material";
 import { useCartContext } from "../../context/CartContext";
+import { LoadingButton } from "@mui/lab";
+import { useState } from "react";
+import requests from "../../api/requests";
 
 export default function ShoppingCartPage() {
   //const [loading, setLoading] = useState(true);
 
-  const { cart } = useCartContext();
+  const { cart, setCart } = useCartContext();
+  const [status, setStatus] = useState({loading: false, id: ""});
 
+  function handleAddItem(productId: number, id: string){
+    setStatus({loading: true, id: id});
+
+    requests.Cart.addItem(productId)
+      .then(cart => setCart(cart))
+      .catch(error => console.log(error))
+      .finally(() => setStatus({loading: false, id: ""}));
+  }
+
+  function handleRemoveItem(productId: number, id: string, quantity = 1){
+    setStatus({loading: true, id: id});
+
+    requests.Cart.deleteItem(productId, quantity)
+      .then((cart) => setCart(cart))
+      .catch(error => console.log(error))
+      .finally(() => setStatus({loading: false, id: id}));
+  }
   //if(loading) return <CircularProgress />
-  if (!cart) return <h1>Sepetiniz ürün bulunmamaktadır.</h1>;
+  if (cart?.cartItems.length === 0) return <Alert severity="warning">Sepetinizde ürün bulunmamaktadır.</Alert>
 
-  const totalItemCount = cart.cartItems.reduce(
+  const totalItemCount = cart?.cartItems.reduce(
     (sum, item) => sum + item.quantity,
     0
   );
-  const totalPrice = cart.cartItems.reduce(
+  const totalPrice = cart?.cartItems.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0
   );
@@ -46,7 +66,7 @@ export default function ShoppingCartPage() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {cart.cartItems.map((item) => (
+            {cart?.cartItems.map((item) => (
               <TableRow
                 key={item.productId}
                 sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
@@ -63,14 +83,28 @@ export default function ShoppingCartPage() {
                 <TableCell align="right">
                   {(item.price / 100).toFixed(2)} ₺
                 </TableCell>
-                <TableCell align="right">{item.quantity}</TableCell>
+                <TableCell align="right">
+                  <LoadingButton 
+                    loading={status.loading && status.id === "add" + item.productId} 
+                    onClick={() => handleAddItem(item.productId, "add" + item.productId)}>
+                    <AddCircleOutline />
+                  </LoadingButton>
+                  {item.quantity}
+                  <LoadingButton 
+                    loading={status.loading && status.id === "del" + item.productId}
+                    onClick={() => handleRemoveItem(item.productId, "del" + item.productId)}>
+                    <RemoveCircleOutline />
+                  </LoadingButton>
+                </TableCell>
                 <TableCell align="right">
                   {((item.price * item.quantity) / 100).toFixed(2)} ₺
                 </TableCell>
                 <TableCell align="right">
-                  <IconButton color="error">
+                  <LoadingButton color="error" 
+                    loading={status.loading && status.id === "del_all" + item.productId}
+                    onClick={() => handleRemoveItem(item.productId, "del_all" + item.productId, item.quantity)}>
                     <Delete />
-                  </IconButton>
+                  </LoadingButton>
                 </TableCell>
               </TableRow>
             ))}
@@ -78,36 +112,6 @@ export default function ShoppingCartPage() {
         </Table>
       </TableContainer>
 
-      {/* <Box mt={2}>
-        <TableContainer component={Paper}>
-          <Table sx={{ minWidth: 650 }}>
-            <TableBody>
-            <TableRow>
-              <TableCell colSpan={2} />
-              <TableCell colSpan={2} />
-              <TableCell colSpan={2} />
-              <TableCell colSpan={2} />
-              <TableCell colSpan={2} />
-              <TableCell colSpan={2} />
-              <TableCell colSpan={2} />
-              <TableCell colSpan={2} />
-              <TableCell colSpan={2} />
-              <TableCell colSpan={2} />
-              <TableCell align="right" sx={{ fontWeight: "bold" }}>
-                Toplam
-              </TableCell>
-              <TableCell align="right" sx={{ fontWeight: "bold" }}>
-                {totalItemCount}
-              </TableCell>
-              <TableCell align="right" sx={{ fontWeight: "bold" }}>
-                {(totalPrice / 100).toFixed(2)} ₺
-              </TableCell>
-              <TableCell />
-            </TableRow>
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Box> */}
       <Box mt={4}>
         <TableContainer
           component={Paper}
