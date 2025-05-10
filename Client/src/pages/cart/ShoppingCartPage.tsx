@@ -1,6 +1,5 @@
 import {
   Alert,
-  Box,
   Paper,
   Table,
   TableBody,
@@ -16,6 +15,8 @@ import { LoadingButton } from "@mui/lab";
 import { useState } from "react";
 import requests from "../../api/requests";
 import { toast } from "react-toastify";
+import ShoppingCartSummary from "./ShoppingCartSummary";
+import { currencyTRY } from "../../utils/formatCurrency";
 
 export default function ShoppingCartPage() {
   //const [loading, setLoading] = useState(true);
@@ -43,14 +44,14 @@ export default function ShoppingCartPage() {
   //if(loading) return <CircularProgress />
   if (cart?.cartItems.length === 0) return <Alert severity="warning">Sepetinizde ürün bulunmamaktadır.</Alert>
 
-  const totalItemCount = cart?.cartItems.reduce(
-    (sum, item) => sum + item.quantity,
-    0
-  );
-  const totalPrice = cart?.cartItems.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
-  );
+  // const totalItemCount = cart?.cartItems.reduce(
+  //   (sum, item) => sum + item.quantity,
+  //   0
+  // );
+  // const totalPrice = cart?.cartItems.reduce(
+  //   (sum, item) => sum + item.price * item.quantity,
+  //   0
+  // );
 
   return (
     <>
@@ -82,7 +83,8 @@ export default function ShoppingCartPage() {
                   {item.name}
                 </TableCell>
                 <TableCell align="right">
-                  {(item.price / 100).toFixed(2)} ₺
+                  {/* {(item.price / 100).toFixed(2)} ₺ */}
+                  { currencyTRY.format(item.price)}
                 </TableCell>
                 <TableCell align="right">
                   <LoadingButton 
@@ -98,7 +100,8 @@ export default function ShoppingCartPage() {
                   </LoadingButton>
                 </TableCell>
                 <TableCell align="right">
-                  {((item.price * item.quantity) / 100).toFixed(2)} ₺
+                  {/* {((item.price * item.quantity) / 100).toFixed(2)} ₺ */}
+                  { currencyTRY.format(item.price * item.quantity)}
                 </TableCell>
                 <TableCell align="right">
                   <LoadingButton color="error" 
@@ -112,11 +115,13 @@ export default function ShoppingCartPage() {
                 </TableCell>
               </TableRow>
             ))}
+            {/* //cart summary */}
+            <ShoppingCartSummary />
           </TableBody>
         </Table>
       </TableContainer>
 
-      <Box mt={4}>
+      {/* <Box mt={4}>
         <TableContainer
           component={Paper}
           sx={{ minWidth: 650, ml: "auto", mr: "auto" }}
@@ -147,7 +152,7 @@ export default function ShoppingCartPage() {
             </TableBody>
           </Table>
         </TableContainer>
-      </Box>
+      </Box> */}
     </>
   );
 }
