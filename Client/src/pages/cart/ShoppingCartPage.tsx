@@ -15,6 +15,7 @@ import { useCartContext } from "../../context/CartContext";
 import { LoadingButton } from "@mui/lab";
 import { useState } from "react";
 import requests from "../../api/requests";
+import { toast } from "react-toastify";
 
 export default function ShoppingCartPage() {
   //const [loading, setLoading] = useState(true);
@@ -102,7 +103,10 @@ export default function ShoppingCartPage() {
                 <TableCell align="right">
                   <LoadingButton color="error" 
                     loading={status.loading && status.id === "del_all" + item.productId}
-                    onClick={() => handleRemoveItem(item.productId, "del_all" + item.productId, item.quantity)}>
+                    onClick={() => {
+                      handleRemoveItem(item.productId, "del_all" + item.productId, item.quantity);
+                      toast.error(`${item.name} sepetinizden silindi!`);
+                      }}>
                     <Delete />
                   </LoadingButton>
                 </TableCell>
