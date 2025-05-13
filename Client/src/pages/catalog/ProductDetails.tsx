@@ -20,10 +20,13 @@ import { AddShoppingCart } from "@mui/icons-material";
 import { useCartContext } from "../../context/CartContext";
 import { toast } from "react-toastify";
 import { currencyTRY } from "../../utils/formatCurrency";
+import { useAppDispatch, useAppSelector } from "../../hooks/hooks";
+import { setCart } from "../cart/cartSlice";
 
 export default function ProductDetailsPage() {
 
-  const {cart, setCart} = useCartContext();
+  const { cart } = useAppSelector(state => state.cart);
+    const dispatch = useAppDispatch();
   const { id } = useParams<{ id: string }>();
   const [product, setProduct] = useState<IProduct | null>(null);
   const [loading, setLoading] = useState(true);
@@ -49,7 +52,7 @@ export default function ProductDetailsPage() {
   
         requests.Cart.addItem(id)
           .then(updatedCart => {
-            setCart(updatedCart);
+            dispatch(setCart(updatedCart));
   
             const totalQuantity = existingQuantity + 1;
   
