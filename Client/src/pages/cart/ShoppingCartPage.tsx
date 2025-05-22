@@ -17,43 +17,33 @@ import { toast } from "react-toastify";
 import ShoppingCartSummary from "./ShoppingCartSummary";
 import { currencyTRY } from "../../utils/formatCurrency";
 import { useAppDispatch, useAppSelector } from "../../hooks/hooks";
-import { setCart } from "./cartSlice";
+import { addItemToCart, deleteItemFromCart, setCart } from "./cartSlice";
 
 export default function ShoppingCartPage() {
   //const [loading, setLoading] = useState(true);
 
-  const { cart } = useAppSelector(state => state.cart);
+  const { cart, status } = useAppSelector(state => state.cart);
   const dispatch = useAppDispatch();
-  const [status, setStatus] = useState({loading: false, id: ""});
+  // const [status, setStatus] = useState({loading: false, id: ""});
 
-  function handleAddItem(productId: number, id: string){
-    setStatus({loading: true, id: id});
+  // function handleAddItem(productId: number, id: string){
+  //   setStatus({loading: true, id: id});
 
-    requests.Cart.addItem(productId)
-      .then(cart => dispatch(setCart(cart)))
-      .catch(error => console.log(error))
-      .finally(() => setStatus({loading: false, id: ""}));
-  }
+  //   requests.Cart.addItem(productId)
+  //     .then(cart => dispatch(setCart(cart)))
+  //     .catch(error => console.log(error))
+  //     .finally(() => setStatus({loading: false, id: ""}));
+  // }
 
-  function handleRemoveItem(productId: number, id: string, quantity = 1){
-    setStatus({loading: true, id: id});
+  // function handleRemoveItem(productId: number, id: string, quantity = 1){
+  //   setStatus({loading: true, id: id});
 
-    requests.Cart.deleteItem(productId, quantity)
-      .then((cart) => dispatch(setCart(cart)))
-      .catch(error => console.log(error))
-      .finally(() => setStatus({loading: false, id: id}));
-  }
-  //if(loading) return <CircularProgress />
+  //   requests.Cart.deleteItem(productId, quantity)
+  //     .then((cart) => dispatch(setCart(cart)))
+  //     .catch(error => console.log(error))
+  //     .finally(() => setStatus({loading: false, id: id}));
+  // }
   if (cart?.cartItems.length === 0) return <Alert severity="warning">Sepetinizde ürün bulunmamaktadır.</Alert>
-
-  // const totalItemCount = cart?.cartItems.reduce(
-  //   (sum, item) => sum + item.quantity,
-  //   0
-  // );
-  // const totalPrice = cart?.cartItems.reduce(
-  //   (sum, item) => sum + item.price * item.quantity,
-  //   0
-  // );
 
   return (
     <>
@@ -90,14 +80,19 @@ export default function ShoppingCartPage() {
                 </TableCell>
                 <TableCell align="right">
                   <LoadingButton 
-                    loading={status.loading && status.id === "add" + item.productId} 
-                    onClick={() => handleAddItem(item.productId, "add" + item.productId)}>
+                    // loading={status.loading && status.id === "add" + item.productId}
+                    loading={status === "pendingAddItem" + item.productId}
+                    // onClick={() => handleAddItem(item.productId, "add" + item.productId)}>
+                    onClick={() => dispatch(addItemToCart({productId: item.productId}))}>
                     <AddCircleOutline />
                   </LoadingButton>
                   {item.quantity}
                   <LoadingButton 
-                    loading={status.loading && status.id === "del" + item.productId}
-                    onClick={() => handleRemoveItem(item.productId, "del" + item.productId)}>
+                    // loading={status.loading && status.id === "del" + item.productId}
+                    loading={status === "pendingDeleteItem" + item.productId + "single"}
+                    // onClick={() => handleRemoveItem(item.productId, "del" + item.productId)}>
+                    onClick={() => 
+                      dispatch(deleteItemFromCart({ productId: item.productId, quantity:1, key: "single"}))}>
                     <RemoveCircleOutline />
                   </LoadingButton>
                 </TableCell>
@@ -107,11 +102,14 @@ export default function ShoppingCartPage() {
                 </TableCell>
                 <TableCell align="right">
                   <LoadingButton color="error" 
-                    loading={status.loading && status.id === "del_all" + item.productId}
-                    onClick={() => {
-                      handleRemoveItem(item.productId, "del_all" + item.productId, item.quantity);
-                      toast.error(`${item.name} sepetinizden silindi!`);
-                      }}>
+                    // loading={status.loading && status.id === "del_all" + item.productId}
+                    loading={status === "pendingDeleteItem" + item.productId + "all"}
+                    // onClick={() => {
+                    //   handleRemoveItem(item.productId, "del_all" + item.productId, item.quantity);
+                    //   toast.error(`${item.name} sepetinizden silindi!`);
+                    //   }}>
+                    onClick={() => 
+                      dispatch(deleteItemFromCart({ productId: item.productId, quantity: item.quantity, key: "all"}))}>
                     <Delete />
                   </LoadingButton>
                 </TableCell>

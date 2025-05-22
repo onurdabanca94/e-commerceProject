@@ -21,16 +21,16 @@ import { useCartContext } from "../../context/CartContext";
 import { toast } from "react-toastify";
 import { currencyTRY } from "../../utils/formatCurrency";
 import { useAppDispatch, useAppSelector } from "../../hooks/hooks";
-import { setCart } from "../cart/cartSlice";
+import { addItemToCart, setCart } from "../cart/cartSlice";
 
 export default function ProductDetailsPage() {
 
-  const { cart } = useAppSelector(state => state.cart);
+  const { cart, status } = useAppSelector(state => state.cart);
     const dispatch = useAppDispatch();
   const { id } = useParams<{ id: string }>();
   const [product, setProduct] = useState<IProduct | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isAdded, setIsAdded] = useState(false);
+  // const [isAdded, setIsAdded] = useState(false);
 
   const item = cart?.cartItems.find(i => i.productId == product?.id);
 
@@ -42,30 +42,30 @@ export default function ProductDetailsPage() {
         .finally(() => setLoading(false));
   }, [id]);
 
-  function handleAddItem(id: number) {
-    setIsAdded(true);
+  // function handleAddItem(id: number) {
+  //   setIsAdded(true);
   
-    requests.Catalog.details(id)
-      .then(productDetails => {
-        const existingItem = cart?.cartItems.find(i => i.productId === id);
-        const existingQuantity = existingItem?.quantity ?? 0;
+  //   requests.Catalog.details(id)
+  //     .then(productDetails => {
+  //       const existingItem = cart?.cartItems.find(i => i.productId === id);
+  //       const existingQuantity = existingItem?.quantity ?? 0;
   
-        requests.Cart.addItem(id)
-          .then(updatedCart => {
-            dispatch(setCart(updatedCart));
+  //       requests.Cart.addItem(id)
+  //         .then(updatedCart => {
+  //           dispatch(setCart(updatedCart));
   
-            const totalQuantity = existingQuantity + 1;
+  //           const totalQuantity = existingQuantity + 1;
   
-            toast.success(`${productDetails.name} sepete eklendi! Şu anda sepetinizde ${totalQuantity} adet var.`);
-          })
-          .catch(error => console.log(error));
-      })
-      .catch(error => {
-        console.log(error);
-        toast.error("Ürün detayları alınırken bir hata oluştu.");
-      })
-      .finally(() => setIsAdded(false));
-  }
+  //           toast.success(`${productDetails.name} sepete eklendi! Şu anda sepetinizde ${totalQuantity} adet var.`);
+  //         })
+  //         .catch(error => console.log(error));
+  //     })
+  //     .catch(error => {
+  //       console.log(error);
+  //       toast.error("Ürün detayları alınırken bir hata oluştu.");
+  //     })
+  //     .finally(() => setIsAdded(false));
+  // }
 
   if (loading) return <CircularProgress />;
   if (!product) return <NotFound />;
@@ -111,8 +111,9 @@ export default function ProductDetailsPage() {
             variant="outlined"
             loadingPosition="start"
             startIcon={<AddShoppingCart />}
-            loading={isAdded}
-            onClick={() => handleAddItem(product.id)}
+            // loading={isAdded}
+            loading={status === "pendingAddItem" + product.id}
+            onClick={() => dispatch(addItemToCart({productId: product.id}))}
           >
             Sepete Ekle
           </LoadingButton>
