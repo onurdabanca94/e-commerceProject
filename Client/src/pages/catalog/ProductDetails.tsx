@@ -17,22 +17,20 @@ import requests from "../../api/requests";
 import NotFound from "../../components/errors/NotFound";
 import { LoadingButton } from "@mui/lab";
 import { AddShoppingCart } from "@mui/icons-material";
-import { useCartContext } from "../../context/CartContext";
 import { toast } from "react-toastify";
 import { currencyTRY } from "../../utils/formatCurrency";
 import { useAppDispatch, useAppSelector } from "../../hooks/hooks";
-import { addItemToCart, setCart } from "../cart/cartSlice";
+import { addItemToCart } from "../cart/cartSlice";
+import { unwrapResult } from "@reduxjs/toolkit";
 
 export default function ProductDetailsPage() {
-
-  const { cart, status } = useAppSelector(state => state.cart);
-    const dispatch = useAppDispatch();
+  const { cart, status } = useAppSelector((state) => state.cart);
+  const dispatch = useAppDispatch();
   const { id } = useParams<{ id: string }>();
   const [product, setProduct] = useState<IProduct | null>(null);
   const [loading, setLoading] = useState(true);
-  // const [isAdded, setIsAdded] = useState(false);
 
-  const item = cart?.cartItems.find(i => i.productId == product?.id);
+  const item = cart?.cartItems.find((i) => i.productId === product?.id);
 
   useEffect(() => {
     id &&
@@ -42,46 +40,45 @@ export default function ProductDetailsPage() {
         .finally(() => setLoading(false));
   }, [id]);
 
-  // function handleAddItem(id: number) {
-  //   setIsAdded(true);
-  
-  //   requests.Catalog.details(id)
-  //     .then(productDetails => {
-  //       const existingItem = cart?.cartItems.find(i => i.productId === id);
-  //       const existingQuantity = existingItem?.quantity ?? 0;
-  
-  //       requests.Cart.addItem(id)
-  //         .then(updatedCart => {
-  //           dispatch(setCart(updatedCart));
-  
-  //           const totalQuantity = existingQuantity + 1;
-  
-  //           toast.success(`${productDetails.name} sepete eklendi! Şu anda sepetinizde ${totalQuantity} adet var.`);
-  //         })
-  //         .catch(error => console.log(error));
-  //     })
-  //     .catch(error => {
-  //       console.log(error);
-  //       toast.error("Ürün detayları alınırken bir hata oluştu.");
-  //     })
-  //     .finally(() => setIsAdded(false));
-  // }
+  const remainingStock = (product?.stock ?? 0) - (item?.quantity ?? 0);
+
+  async function handleAddItem(id: number) {
+    try {
+      const productDetails = await requests.Catalog.details(id);
+
+      const resultAction = await dispatch(addItemToCart({ productId: id }));
+      const updatedCart = unwrapResult(resultAction);
+
+      const existingItem = updatedCart.cartItems.find((i) => i.productId === id);
+      const totalQuantity = existingItem?.quantity ?? 1;
+
+      toast.success(
+        `${productDetails.name} sepete eklendi! Şu anda sepetinizde ${totalQuantity} adet var.`
+      );
+    } catch (error) {
+      console.log(error);
+      toast.error("Ürün sepete eklenirken bir hata oluştu.");
+    }
+  }
 
   if (loading) return <CircularProgress />;
   if (!product) return <NotFound />;
 
-  const remainingStock = (product?.stock ?? 0) - (item?.quantity ?? 0);
-
   return (
-    //<Typography variant="h2">{product.name}</Typography>
     <Grid container spacing={6}>
-      <Grid size={{ xl: 3, lg: 4, md: 5, sm: 6, xs: 12 }}>
+      <Grid item xl={3} lg={4} md={5} sm={6} xs={12}>
         <img
           src={`http://localhost:5057/images/${product.imageUrl}`}
-          style={{ width: "100%" }}
+          style={{
+            width: 400,         // Sabit genişlik (px olarak)
+            height: 400,        // Sabit yükseklik (px olarak)
+            objectFit: "contain", // Görsel orantısını korur, boşluk kalabilir
+            borderRadius: 8,    // İstersen köşeleri hafif yuvarlatabilirsin
+            boxShadow: "0 0 8px rgba(0,0,0,0.1)", // Hafif gölgeyle daha hoş görünür
+          }}
         />
       </Grid>
-      <Grid size={{ xl: 9, lg: 8, md: 7, sm: 6, xs: 12 }}>
+      <Grid item xl={9} lg={8} md={7} sm={6} xs={12}>
         <Typography variant="h3">{product.name}</Typography>
         <Divider sx={{ mb: 2 }} />
         <Typography variant="h4" color="secondary">
@@ -106,22 +103,21 @@ export default function ProductDetailsPage() {
           </Table>
         </TableContainer>
 
-        <Stack direction="row" spacing={2} sx={{mt: 3}} alignItems="center">
+        <Stack direction="row" spacing={2} sx={{ mt: 3 }} alignItems="center">
           <LoadingButton
             variant="outlined"
             loadingPosition="start"
             startIcon={<AddShoppingCart />}
-            // loading={isAdded}
             loading={status === "pendingAddItem" + product.id}
-            onClick={() => dispatch(addItemToCart({productId: product.id}))}
+            onClick={() => handleAddItem(product.id)}
           >
             Sepete Ekle
           </LoadingButton>
-          {
-            item?.quantity! > 0 && (
-                <Typography variant="body2">Sepetinize {item?.quantity} adet eklendi. Stokta {remainingStock} adet kaldı.</Typography>
-            )
-          }
+          {item?.quantity! > 0 && (
+            <Typography variant="body2">
+              Sepetinize {item.quantity} adet eklendi. Stokta {remainingStock} adet kaldı.
+            </Typography>
+          )}
         </Stack>
       </Grid>
     </Grid>

@@ -11,44 +11,23 @@ import {
 
 import { AddCircleOutline, Delete, RemoveCircleOutline } from "@mui/icons-material";
 import { LoadingButton } from "@mui/lab";
-import { useState } from "react";
-import requests from "../../api/requests";
-import { toast } from "react-toastify";
 import ShoppingCartSummary from "./ShoppingCartSummary";
 import { currencyTRY } from "../../utils/formatCurrency";
 import { useAppDispatch, useAppSelector } from "../../hooks/hooks";
-import { addItemToCart, deleteItemFromCart, setCart } from "./cartSlice";
+import { addItemToCart, deleteItemFromCart } from "./cartSlice";
+import { toast } from "react-toastify";
 
 export default function ShoppingCartPage() {
-  //const [loading, setLoading] = useState(true);
-
-  const { cart, status } = useAppSelector(state => state.cart);
+  const { cart, status } = useAppSelector((state) => state.cart);
   const dispatch = useAppDispatch();
-  // const [status, setStatus] = useState({loading: false, id: ""});
 
-  // function handleAddItem(productId: number, id: string){
-  //   setStatus({loading: true, id: id});
-
-  //   requests.Cart.addItem(productId)
-  //     .then(cart => dispatch(setCart(cart)))
-  //     .catch(error => console.log(error))
-  //     .finally(() => setStatus({loading: false, id: ""}));
-  // }
-
-  // function handleRemoveItem(productId: number, id: string, quantity = 1){
-  //   setStatus({loading: true, id: id});
-
-  //   requests.Cart.deleteItem(productId, quantity)
-  //     .then((cart) => dispatch(setCart(cart)))
-  //     .catch(error => console.log(error))
-  //     .finally(() => setStatus({loading: false, id: id}));
-  // }
-  if (cart?.cartItems.length === 0) return <Alert severity="warning">Sepetinizde ürün bulunmamaktadır.</Alert>
+  if (cart?.cartItems.length === 0)
+    return <Alert severity="warning">Sepetinizde ürün bulunmamaktadır.</Alert>;
 
   return (
     <>
       <TableContainer component={Paper}>
-        <Table sx={{ minWidth: 650 }} aria-label="simple table">
+        <Table sx={{ minWidth: 650 }} aria-label="shopping cart table">
           <TableHead>
             <TableRow>
               <TableCell></TableCell>
@@ -61,98 +40,95 @@ export default function ShoppingCartPage() {
           </TableHead>
           <TableBody>
             {cart?.cartItems.map((item) => (
-              <TableRow
-                key={item.productId}
-                sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-              >
+              <TableRow key={item.productId}>
                 <TableCell component="th" scope="row">
                   <img
                     src={`http://localhost:5057/images/${item.imageUrl}`}
                     style={{ height: 60 }}
                   />
                 </TableCell>
-                <TableCell component="th" scope="row">
-                  {item.name}
+                <TableCell>{item.name}</TableCell>
+                <TableCell align="right">
+                  {currencyTRY.format(item.price)}
                 </TableCell>
                 <TableCell align="right">
-                  {/* {(item.price / 100).toFixed(2)} ₺ */}
-                  { currencyTRY.format(item.price)}
-                </TableCell>
-                <TableCell align="right">
-                  <LoadingButton 
-                    // loading={status.loading && status.id === "add" + item.productId}
+                  <LoadingButton
                     loading={status === "pendingAddItem" + item.productId}
-                    // onClick={() => handleAddItem(item.productId, "add" + item.productId)}>
-                    onClick={() => dispatch(addItemToCart({productId: item.productId}))}>
+                    onClick={() =>
+                      dispatch(addItemToCart({ productId: item.productId }))
+                        .unwrap()
+                        .then(() =>
+                          toast.success(`${item.name} sepete eklendi!`)
+                        )
+                        .catch(() =>
+                          toast.error("Ürün sepete eklenemedi")
+                        )
+                    }
+                  >
                     <AddCircleOutline />
                   </LoadingButton>
                   {item.quantity}
-                  <LoadingButton 
-                    // loading={status.loading && status.id === "del" + item.productId}
-                    loading={status === "pendingDeleteItem" + item.productId + "single"}
-                    // onClick={() => handleRemoveItem(item.productId, "del" + item.productId)}>
-                    onClick={() => 
-                      dispatch(deleteItemFromCart({ productId: item.productId, quantity:1, key: "single"}))}>
+                  <LoadingButton
+                    loading={
+                      status ===
+                      "pendingDeleteItem" + item.productId + "single"
+                    }
+                    onClick={() =>
+                      dispatch(
+                        deleteItemFromCart({
+                          productId: item.productId,
+                          quantity: 1,
+                          key: "single",
+                        })
+                      )
+                        .unwrap()
+                        .then(() =>
+                          toast.info(`${item.name} adedi azaltıldı`)
+                        )
+                        .catch(() =>
+                          toast.error("Ürün azaltılamadı")
+                        )
+                    }
+                  >
                     <RemoveCircleOutline />
                   </LoadingButton>
                 </TableCell>
                 <TableCell align="right">
-                  {/* {((item.price * item.quantity) / 100).toFixed(2)} ₺ */}
-                  { currencyTRY.format(item.price * item.quantity)}
+                  {currencyTRY.format(item.price * item.quantity)}
                 </TableCell>
                 <TableCell align="right">
-                  <LoadingButton color="error" 
-                    // loading={status.loading && status.id === "del_all" + item.productId}
-                    loading={status === "pendingDeleteItem" + item.productId + "all"}
-                    // onClick={() => {
-                    //   handleRemoveItem(item.productId, "del_all" + item.productId, item.quantity);
-                    //   toast.error(`${item.name} sepetinizden silindi!`);
-                    //   }}>
-                    onClick={() => 
-                      dispatch(deleteItemFromCart({ productId: item.productId, quantity: item.quantity, key: "all"}))}>
+                  <LoadingButton
+                    color="error"
+                    loading={
+                      status ===
+                      "pendingDeleteItem" + item.productId + "all"
+                    }
+                    onClick={() =>
+                      dispatch(
+                        deleteItemFromCart({
+                          productId: item.productId,
+                          quantity: item.quantity,
+                          key: "all",
+                        })
+                      )
+                        .unwrap()
+                        .then(() =>
+                          toast.error(`${item.name} sepetten silindi!`)
+                        )
+                        .catch(() =>
+                          toast.error("Ürün silinemedi")
+                        )
+                    }
+                  >
                     <Delete />
                   </LoadingButton>
                 </TableCell>
               </TableRow>
             ))}
-            {/* //cart summary */}
             <ShoppingCartSummary />
           </TableBody>
         </Table>
       </TableContainer>
-
-      {/* <Box mt={4}>
-        <TableContainer
-          component={Paper}
-          sx={{ minWidth: 650, ml: "auto", mr: "auto" }}
-        >
-          <Table size="small">
-            <TableBody>
-              <TableRow>
-                <TableCell colSpan={2} />
-                <TableCell
-                  align="right"
-                  sx={{ fontWeight: "bold", width: "150px" }}
-                >
-                  Toplam Ürün Adedi
-                </TableCell>
-                <TableCell align="right" sx={{ width: "80px" }}>
-                  {totalItemCount}
-                </TableCell>
-                <TableCell
-                  align="right"
-                  sx={{ fontWeight: "bold", width: "150px" }}
-                >
-                  Toplam Fiyat
-                </TableCell>
-                <TableCell align="right" sx={{ width: "120px" }}>
-                  {(totalPrice / 100).toFixed(2)} ₺
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Box> */}
     </>
   );
 }

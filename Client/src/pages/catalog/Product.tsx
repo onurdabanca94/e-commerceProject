@@ -11,46 +11,41 @@ import { AddShoppingCart } from "@mui/icons-material";
 import SearchIcon from "@mui/icons-material/Search";
 import { Link } from "react-router";
 import { LoadingButton } from "@mui/lab";
-// import { useCartContext } from "../../context/CartContext";
 import { currencyTRY } from "../../utils/formatCurrency";
 import { useAppDispatch, useAppSelector } from "../../hooks/hooks";
 import { addItemToCart } from "../cart/cartSlice";
+import { toast } from "react-toastify";
+import requests from "../../api/requests"; // detay için
+import { unwrapResult } from "@reduxjs/toolkit"; // thunka gelen sonucu ayıklamak için
+
 interface Props {
   product: IProduct;
 }
 
 export default function Product({ product }: Props) {
-  const {status} = useAppSelector(state => state.cart);
+  const { status, cart } = useAppSelector((state) => state.cart);
   const dispatch = useAppDispatch();
 
-  // const [loading, setLoading] = useState(false);
-  // const { cart, setCart } = useCartContext();
-  //Aşağıdaki fonksiyon ile ProductDetails sayfasındakine göre async bir fonksiyon olarak kullanımı gösterilmiştir.
-  // async function handleAddItem(productId: number) {
-  //   setLoading(true);
-  //   // const existingItem = cart?.cartItems.find(i => i.productId === productId);
-  //   // const existingQuantity = existingItem?.quantity ?? 0;
-  //   try {
-  //     const productDetails = await requests.Catalog.details(productId);
-  //     const updatedCart = await requests.Cart.addItem(productId);
+  async function handleAddItem(productId: number) {
+    try {
+      const productDetails = await requests.Catalog.details(productId);
 
-  //     dispatch(setCart(updatedCart));
+      const resultAction = await dispatch(addItemToCart({ productId }));
+      const updatedCart = unwrapResult(resultAction); // fulfilled sonucu al
 
-  //     const existingItem = updatedCart.cartItems.find(
-  //       (i) => i.productId === productId
-  //     );
-  //     const totalQuantity = existingItem?.quantity ?? 1;
+      const existingItem = updatedCart.cartItems.find(
+        (i) => i.productId === productId
+      );
+      const totalQuantity = existingItem?.quantity ?? 1;
 
-  //     toast.success(
-  //       `${productDetails.name} sepete eklendi! Şu anda sepetinizde ${totalQuantity} adet var.`
-  //     );
-  //   } catch (error) {
-  //     console.log(error);
-  //     toast.error("Ürün eklenirken bir hata oluştu.");
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // }
+      toast.success(
+        `${productDetails.name} sepete eklendi! Şu anda sepetinizde ${totalQuantity} adet var.`
+      );
+    } catch (error) {
+      console.log(error);
+      toast.error("Ürün sepete eklenirken bir hata oluştu.");
+    }
+  }
 
   return (
     <Card>
@@ -72,14 +67,12 @@ export default function Product({ product }: Props) {
         </Typography>
       </CardContent>
       <CardActions>
-        {/* <Button variant="outlined" size="small" startIcon={<AddShoppingCart/>} color="success" 
-                onClick={() => handleAddItem(product.id)}>Sepete Ekle</Button> */}
         <LoadingButton
           size="small"
           variant="outlined"
           startIcon={<AddShoppingCart />}
           loading={status === "pendingAddItem" + product.id}
-          onClick={() => dispatch(addItemToCart({productId: product.id}))}
+          onClick={() => handleAddItem(product.id)}
         >
           Sepete Ekle
         </LoadingButton>
