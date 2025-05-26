@@ -1,5 +1,5 @@
 import requests from '../../api/requests';
-import { Cart } from './../../model/ICart';
+import { Cart } from '../../model/ICart';
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
 interface CartState {

@@ -1,7 +1,7 @@
+import Grid from '@mui/material/Grid';
 import {
   CircularProgress,
   Divider,
-  Grid,
   Stack,
   Table,
   TableBody,
@@ -10,11 +10,10 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useParams } from "react-router";
-import { IProduct } from "../../model/IProduct";
 import requests from "../../api/requests";
-import NotFound from "../../components/errors/NotFound";
+import NotFound from "../../layout/errors/NotFound";
 import { LoadingButton } from "@mui/lab";
 import { AddShoppingCart } from "@mui/icons-material";
 import { toast } from "react-toastify";
@@ -22,22 +21,20 @@ import { currencyTRY } from "../../utils/formatCurrency";
 import { useAppDispatch, useAppSelector } from "../../hooks/hooks";
 import { addItemToCart } from "../cart/cartSlice";
 import { unwrapResult } from "@reduxjs/toolkit";
+import { fetchProductById, selectProductById } from './catalogSlice';
 
 export default function ProductDetailsPage() {
   const { cart, status } = useAppSelector((state) => state.cart);
   const dispatch = useAppDispatch();
   const { id } = useParams<{ id: string }>();
-  const [product, setProduct] = useState<IProduct | null>(null);
-  const [loading, setLoading] = useState(true);
+  const product = useAppSelector(state => selectProductById(state, Number(id)));
+  const { status: loading} = useAppSelector(state => state.catalog);
 
   const item = cart?.cartItems.find((i) => i.productId === product?.id);
 
   useEffect(() => {
-    id &&
-      requests.Catalog.details(parseInt(id))
-        .then((data) => setProduct(data))
-        .catch((error) => console.log(error))
-        .finally(() => setLoading(false));
+    if(!product && id)
+      dispatch(fetchProductById(parseInt(id)))
   }, [id]);
 
   const remainingStock = (product?.stock ?? 0) - (item?.quantity ?? 0);
@@ -61,7 +58,7 @@ export default function ProductDetailsPage() {
     }
   }
 
-  if (loading) return <CircularProgress />;
+  if (loading === "pendingFetchProductById") return <CircularProgress />;
   if (!product) return <NotFound />;
 
   return (
@@ -70,11 +67,11 @@ export default function ProductDetailsPage() {
         <img
           src={`http://localhost:5057/images/${product.imageUrl}`}
           style={{
-            width: 400,         // Sabit genişlik (px olarak)
-            height: 400,        // Sabit yükseklik (px olarak)
-            objectFit: "contain", // Görsel orantısını korur, boşluk kalabilir
-            borderRadius: 8,    // İstersen köşeleri hafif yuvarlatabilirsin
-            boxShadow: "0 0 8px rgba(0,0,0,0.1)", // Hafif gölgeyle daha hoş görünür
+            width: 400,
+            height: 400,
+            objectFit: "contain",
+            borderRadius: 8,
+            boxShadow: "0 0 8px rgba(0,0,0,0.1)",
           }}
         />
       </Grid>
@@ -115,7 +112,7 @@ export default function ProductDetailsPage() {
           </LoadingButton>
           {item?.quantity! > 0 && (
             <Typography variant="body2">
-              Sepetinize {item.quantity} adet eklendi. Stokta {remainingStock} adet kaldı.
+              Sepetinize {item?.quantity} adet eklendi. Stokta {remainingStock} adet kaldı.
             </Typography>
           )}
         </Stack>
