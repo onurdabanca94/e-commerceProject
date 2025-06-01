@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using WebAPI.Entity;
 
 namespace WebAPI.DataAccess;
 
-public class DataContext(DbContextOptions options) : DbContext(options) //class seviyesinde constructor.
+public class DataContext(DbContextOptions options) : IdentityDbContext<AppUser, AppRole, string>(options) //class seviyesinde constructor.
 {
     public DbSet<Product> Products => Set<Product>(); //Null promise.
     public DbSet<Cart> Carts => Set<Cart>();

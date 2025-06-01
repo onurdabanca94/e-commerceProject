@@ -146,3 +146,4 @@ C:\Users\premi\source\repos\e-commerceProject\WebAPI\bin\Debug\net9.0\runtimes\w
 C:\Users\premi\source\repos\e-commerceProject\WebAPI\bin\Debug\net9.0\runtimes\win-x64\native\e_sqlite3.dll
 C:\Users\premi\source\repos\e-commerceProject\WebAPI\bin\Debug\net9.0\runtimes\win-x86\native\e_sqlite3.dll
 C:\Users\premi\source\repos\e-commerceProject\WebAPI\bin\Debug\net9.0\WebAPI.staticwebassets.runtime.json
+C:\Users\premi\source\repos\e-commerceProject\WebAPI\bin\Debug\net9.0\Microsoft.AspNetCore.Identity.EntityFrameworkCore.dll
