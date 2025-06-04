@@ -26,14 +26,14 @@ public class AccountController : ControllerBase
 
         if (user == null)
         {
-            return BadRequest(new { message = "username hatalı! " });
+            return BadRequest(new ProblemDetails { Title = "Kullanıcı adı hatalı."}); //Aşağıdaki Unauthorized mesajını requests frontend tarafında hallettik.
         }
 
         var result = await _userManager.CheckPasswordAsync(user, model.Password);
 
         if (!result)
         {
-            return Unauthorized(new { message = "Eksik veya yanlış şifre girdiniz.." });
+            return Unauthorized(new { message = "Eksik veya yanlış şifre girdiniz." });
         }
         return Ok(new { token = await _tokenService.GenerateToken(user) });
     }

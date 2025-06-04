@@ -1,32 +1,28 @@
 import { LockOutlined } from "@mui/icons-material";
+import { FieldValues, useForm } from 'react-hook-form';
 import {
   Avatar,
   Box,
-  Button,
   Container,
   Paper,
   TextField,
   Typography,
 } from "@mui/material";
-import { useState } from "react";
 import requests from "../../api/requests";
+import { LoadingButton } from "@mui/lab";
 
 export default function LoginPage() {
-
-  const [values, setValues] = useState({
-    username: "",
-    password: ""
+  
+  const {register, handleSubmit, formState: {errors, isSubmitting, isValid}} = useForm({
+    defaultValues: {
+      username: "",
+      password: ""
+    }
   });
 
-  function handleSubmit(e: any) {
-    e.preventDefault();
-    console.log(values);
-    requests.Account.login(values);
-  }
-  
-  function handleInputChange(e: any){
-    const {name, value} = e.target;
-    setValues({...values, [name]: value}); // {username: "", password: "" => username: "abc", password: "123"} sonradan yazılan önceki değerleri günceller ...values ile
+  //username password bilgileri.
+  async function submitForm(data: FieldValues){
+    await requests.Account.login(data);
   }
 
   return (
@@ -43,22 +39,23 @@ export default function LoginPage() {
           {" "}
           Giriş Yap{" "}
         </Typography>
-        <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 2 }}>
+        <Box component="form" onSubmit={handleSubmit(submitForm)} noValidate sx={{ mt: 2 }}>
           <TextField
-            name="username"
-            value={values.username}
-            onChange={handleInputChange}
+            {...register("username", {required: "Kullanıcı adı zorunludur."})}
             label="Kullanıcı Adı"
             fullWidth
             required
             autoFocus
             sx={{ mb: 2 }}
             size="small"
+            error={!!errors.username}
+            helperText={errors.username?.message}
           ></TextField>
           <TextField
-            name="password"
-            value={values.password}
-            onChange={handleInputChange}
+            {...register("password", {required: "Şifre zorunludur.", minLength: {
+              value: 6,
+              message: "Minimum 6 karakter girmelisiniz."
+            }})}
             label="Şifre"
             type="password"
             fullWidth
@@ -66,10 +63,17 @@ export default function LoginPage() {
             autoFocus
             sx={{ mb: 2 }}
             size="small"
+            error={!!errors.password}
+            helperText={errors.password?.message}
           ></TextField>
-          <Button type="submit" variant="contained" fullWidth sx={{ mt: 1 }}>
+          <LoadingButton 
+          loading={isSubmitting}
+          disabled={!isValid} 
+          type="submit" 
+          variant="contained" 
+          fullWidth sx={{ mt: 1 }}>
             Giriş Yap
-          </Button>
+          </LoadingButton>
         </Box>
       </Paper>
     </Container>

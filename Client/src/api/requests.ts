@@ -23,7 +23,7 @@ axios.interceptors.response.use(response => {
             toast.error(data.title);
             break;
         case 401:
-            toast.error(data.title);
+            toast.error(data.title || data.message);
             break;
         case 404:
             router.navigate("/not-found");
