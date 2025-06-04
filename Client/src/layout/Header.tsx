@@ -21,6 +21,11 @@ const links = [
   { title: "Error", to: "/error" },
 ];
 
+const authLinks = [
+  { title: "Login", to: "/login" },
+  { title: "Register", to: "/register" },
+];
+
 const navStyles = {
   color: "inherit",
   textDecoration: "none",
@@ -33,7 +38,7 @@ const navStyles = {
 };
 
 export default function Header() {
-  const { cart } = useAppSelector(state => state.cart);
+  const { cart } = useAppSelector((state) => state.cart);
   //const itemCount = cart?.cartItems.reduce((total, item) => total + item.quantity, 0) --> Toplam ürün sayısını verir.
   const itemCount = cart?.cartItems.length || 0; // --> Toplam ürün çeşidi sayısını verir.
   const totalQuantity =
@@ -66,7 +71,7 @@ export default function Header() {
           </Stack>
         </Box>
 
-        <Box>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
           <Tooltip
             slotProps={{
               popper: {
@@ -95,6 +100,19 @@ export default function Header() {
               </Badge>
             </IconButton>
           </Tooltip>
+
+          <Stack direction="row" spacing={2}>
+            {authLinks.map((link) => (
+              <Button
+                key={link.to}
+                component={NavLink}
+                to={link.to}
+                sx={navStyles}
+              >
+                {link.title}
+              </Button>
+            ))}
+          </Stack>
         </Box>
       </Toolbar>
     </AppBar>
