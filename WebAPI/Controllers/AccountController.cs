@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using WebAPI.Dtos;
@@ -26,7 +27,7 @@ public class AccountController : ControllerBase
 
         if (user == null)
         {
-            return BadRequest(new ProblemDetails { Title = "Kullanıcı adı hatalı."}); //Aşağıdaki Unauthorized mesajını requests frontend tarafında hallettik.
+            return BadRequest(new ProblemDetails { Title = "Kullanıcı adı hatalı." }); //Aşağıdaki Unauthorized mesajını requests frontend tarafında hallettik.
         }
 
         var result = await _userManager.CheckPasswordAsync(user, model.Password);
@@ -66,5 +67,23 @@ public class AccountController : ControllerBase
         }
 
         return BadRequest(result.Errors);
+    }
+
+    [Authorize]
+    [HttpGet("getuser")]
+    public async Task<ActionResult<UserDto>> GetUser()
+    {
+        var user = await _userManager.FindByNameAsync(User.Identity?.Name!);
+
+        if (user == null)
+        {
+            return BadRequest(new ProblemDetails { Title = "kullanıcı adı veya şifre hatalı!" });
+        }
+
+        return new UserDto
+        {
+            Name = user.Name!,
+            Token = await _tokenService.GenerateToken(user)
+        };
     }
 }
