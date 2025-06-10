@@ -20,7 +20,7 @@ public class AccountController : ControllerBase
     }
 
     [HttpPost("Login")]
-    public async Task<IActionResult> Login(LoginDto model)
+    public async Task<ActionResult<UserDto>> Login(LoginDto model)
     {
         var user = await _userManager.FindByNameAsync(model.UserName);
 
@@ -35,7 +35,11 @@ public class AccountController : ControllerBase
         {
             return Unauthorized(new { message = "Eksik veya yanlış şifre girdiniz." });
         }
-        return Ok(new { token = await _tokenService.GenerateToken(user) });
+        return Ok(new UserDto
+        {
+            Name = user.Name!,
+            Token = await _tokenService.GenerateToken(user)
+        });
     }
 
     [HttpPost("Register")]

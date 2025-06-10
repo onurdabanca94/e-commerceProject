@@ -8,11 +8,16 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import requests from "../../api/requests";
 import { LoadingButton } from "@mui/lab";
+import { useAppDispatch } from "../../hooks/hooks";
+import { loginUser } from "./accountSlice";
+import { useNavigate } from "react-router";
 
 export default function LoginPage() {
   
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+
   const {register, handleSubmit, formState: {errors, isSubmitting, isValid}} = useForm({
     defaultValues: {
       username: "",
@@ -22,7 +27,8 @@ export default function LoginPage() {
 
   //username password bilgileri.
   async function submitForm(data: FieldValues){
-    await requests.Account.login(data);
+    await dispatch(loginUser(data));
+    navigate("/catalog");
   }
 
   return (
