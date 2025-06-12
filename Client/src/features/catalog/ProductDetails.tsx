@@ -18,10 +18,10 @@ import { LoadingButton } from "@mui/lab";
 import { AddShoppingCart } from "@mui/icons-material";
 import { toast } from "react-toastify";
 import { currencyTRY } from "../../utils/formatCurrency";
-import { useAppDispatch, useAppSelector } from "../../hooks/hooks";
 import { addItemToCart } from "../cart/cartSlice";
 import { unwrapResult } from "@reduxjs/toolkit";
 import { fetchProductById, selectProductById } from './catalogSlice';
+import { useAppDispatch, useAppSelector } from '../../store/store';
 
 export default function ProductDetailsPage() {
   const { cart, status } = useAppSelector((state) => state.cart);

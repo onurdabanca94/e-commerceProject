@@ -40,6 +40,17 @@ export const deleteItemFromCart = createAsyncThunk<Cart, { productId: number, qu
     }
 );
 
+export const getCart = createAsyncThunk<Cart>(
+    "cart/getcart",
+    async (_, thunkAPI) => {
+        try {
+            return await requests.Cart.get();
+        } catch (error: any) {
+            return thunkAPI.rejectWithValue({error: error.data});
+        }
+    }
+)
+
 export const cartSlice = createSlice({
     name: "cart",
     initialState,
@@ -76,6 +87,15 @@ export const cartSlice = createSlice({
 
         builder.addCase(deleteItemFromCart.rejected, (state) => {
             state.status = "idle";
+        });
+
+        builder.addCase(getCart.fulfilled, (state, action) => {
+            state.cart = action.payload;
+            state.status = "idle";
+        });
+
+        builder.addCase(getCart.rejected, (_, action) => {
+            console.log(action.payload);
         });
     }
 })

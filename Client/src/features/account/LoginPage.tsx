@@ -9,9 +9,9 @@ import {
   Typography,
 } from "@mui/material";
 import { LoadingButton } from "@mui/lab";
-import { useAppDispatch } from "../../hooks/hooks";
 import { loginUser } from "./accountSlice";
 import { useNavigate } from "react-router";
+import { useAppDispatch } from "../../store/store";
 
 export default function LoginPage() {
   
