@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using WebAPI.DataAccess;
 using WebAPI.Dtos;
 using WebAPI.Entity;
 using WebAPI.Services;
@@ -13,11 +15,13 @@ public class AccountController : ControllerBase
 {
     private readonly UserManager<AppUser> _userManager;
     private readonly TokenService _tokenService;
+    private readonly DataContext _context;
 
-    public AccountController(UserManager<AppUser> userManager, TokenService tokenService)
+    public AccountController(UserManager<AppUser> userManager, TokenService tokenService, DataContext context)
     {
         _userManager = userManager;
         _tokenService = tokenService;
+        _context = context;
     }
 
     [HttpPost("Login")]
@@ -36,11 +40,59 @@ public class AccountController : ControllerBase
         {
             return Unauthorized(new { message = "Eksik veya yanlış şifre girdiniz." });
         }
+        var userCart = await GetOrCreate(model.UserName);
+        var cookieCart = await GetOrCreate(Request.Cookies["customerId"]!);
+
+        if (userCart != null)
+        {
+            foreach (var item in userCart.CartItems)
+            {
+                cookieCart.AddItem(item.Product, item.Quantity);
+            }
+            _context.Carts.Remove(userCart);
+        }
+
+        cookieCart.CustomerId = model.UserName;
+        await _context.SaveChangesAsync();
+
         return Ok(new UserDto
         {
             Name = user.Name!,
             Token = await _tokenService.GenerateToken(user)
         });
+    }
+
+    private async Task<Cart> GetOrCreate(string customer1Id)
+    {
+        var cart = await _context
+            .Carts.Include(i => i.CartItems)
+            .ThenInclude(i => i.Product)
+            .Where(i => i.CustomerId == customer1Id)
+            .FirstOrDefaultAsync();
+
+        if (cart == null)
+        {
+            var customerId = User.Identity?.Name;
+
+            if (string.IsNullOrEmpty(customerId))
+            {
+                customerId = Guid.NewGuid().ToString();
+                var cookieOptions = new CookieOptions
+                {
+                    Expires = DateTime.Now.AddMonths(1),
+                    IsEssential = true
+                };
+                Response.Cookies.Append("customerId", customerId, cookieOptions);
+            }
+
+            cart = new Cart { CustomerId = customerId };
+
+            _context.Carts.Add(cart);
+
+            await _context.SaveChangesAsync();
+        }
+
+        return cart;
     }
 
     [HttpPost("Register")]

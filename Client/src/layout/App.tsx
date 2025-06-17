@@ -17,8 +17,8 @@ function App() {
   const initApp = async () => {
     // getCart
     // getUser
-    await dispatch(getCart());
     await dispatch(getUser());
+    await dispatch(getCart());
   }
 
   useEffect(() => {
